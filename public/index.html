@@ -97,9 +97,22 @@
                 this.x += this.vx;
                 this.y += this.vy;
 
-                // Bounce off edges
-                if (this.x < 0 || this.x > canvas.width) this.vx *= -1;
-                if (this.y < 0 || this.y > canvas.height) this.vy *= -1;
+                // Bounce off edges, ensuring nodes don't fly off screen
+                if (this.x < 0) {
+                    this.x = 0;
+                    this.vx *= -1; // Reverse direction
+                } else if (this.x > canvas.width) {
+                    this.x = canvas.width;
+                    this.vx *= -1; // Reverse direction
+                }
+
+                if (this.y < 0) {
+                    this.y = 0;
+                    this.vy *= -1; // Reverse direction
+                } else if (this.y > canvas.height) {
+                    this.y = canvas.height;
+                    this.vy *= -1; // Reverse direction
+                }
             }
 
             draw() {
@@ -113,8 +126,8 @@
         const nodes = Array.from({ length: 150 }, () => new Node());
 
         function animate() {
-            ctx.fillStyle = 'rgba(0, 8, 20, 0.05)';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            // Clear the canvas without leaving a trail
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
 
             nodes.forEach(node => {
                 node.update();
@@ -128,7 +141,7 @@
                     const dy = other.y - node.y;
                     const distance = Math.sqrt(dx * dx + dy * dy);
 
-                    if (distance < 150) {  // Increase connection vicinity slightly, fewer connections
+                    if (distance < 150) {  // Connection vicinity
                         ctx.beginPath();
                         ctx.moveTo(node.x, node.y);
                         ctx.lineTo(other.x, other.y);
