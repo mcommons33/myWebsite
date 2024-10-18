@@ -69,8 +69,8 @@
             reset() {
                 this.x = Math.random() * canvas.width;
                 this.y = Math.random() * canvas.height;
-                this.baseVx = (Math.random() - 0.5) * 3; // Base speed
-                this.baseVy = (Math.random() - 0.5) * 3; // Base speed
+                this.baseVx = (Math.random() - 0.5) * 2; // Base speed
+                this.baseVy = (Math.random() - 0.5) * 2; // Base speed
                 this.vx = this.baseVx;
                 this.vy = this.baseVy;
                 this.radius = Math.random() * 2 + 1;
@@ -97,7 +97,7 @@
                 this.x += this.vx;
                 this.y += this.vy;
 
-                // Bounce off edges, ensuring nodes don't fly off screen
+                // Bounce off edges and ensure nodes are evenly distributed
                 if (this.x < 0) {
                     this.x = 0;
                     this.vx *= -1; // Reverse direction
@@ -112,6 +112,11 @@
                 } else if (this.y > canvas.height) {
                     this.y = canvas.height;
                     this.vy *= -1; // Reverse direction
+                }
+
+                // Randomly reset node position if it stays too close to the edge
+                if (this.x <= 5 || this.x >= canvas.width - 5 || this.y <= 5 || this.y >= canvas.height - 5) {
+                    this.reset();
                 }
             }
 
