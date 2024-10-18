@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Matrix Image Generator</title>
+    <title>Matrix Animation</title>
     <style>
         * {
             margin: 0;
@@ -13,7 +13,7 @@
 
         body {
             overflow: hidden;
-            background: #000814; /* Darker blue background */
+            background: #000814;
             font-family: 'Arial', sans-serif;
         }
 
@@ -24,94 +24,26 @@
             z-index: 1;
         }
 
-        .interface {
-            position: relative;
-            z-index: 2;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            height: 100vh;
-            padding-top: 20vh;
-        }
-
-        .text-input {
-            padding: 15px 25px;
-            font-size: 24px;
-            background: rgba(255, 255, 255, 0.1);
-            border: 2px solid rgba(255, 255, 255, 0.3);
-            border-radius: 25px;
-            color: #fff;
-            outline: none;
-            width: 400px;
-            text-align: center;
-            backdrop-filter: blur(5px);
-            transition: all 0.3s ease;
-        }
-
-        .text-input:focus {
-            background: rgba(255, 255, 255, 0.15);
-            border-color: rgba(255, 255, 255, 0.5);
-            box-shadow: 0 0 20px rgba(255, 255, 255, 0.2);
-        }
-
-        .text-input::placeholder {
-            color: rgba(255, 255, 255, 0.5);
-        }
-
-        .loading {
-            margin-top: 20px;
-            color: #fff;
-            font-size: 18px;
-            opacity: 0;
-            transition: opacity 0.3s ease;
-        }
-
-        .loading.visible {
-            opacity: 1;
-        }
-
-        .background-image {
+        .centered-text {
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            opacity: 0;
-            transition: opacity 2s ease;
-            z-index: 0;
-        }
-
-        .error-message {
-            color: #ff4444;
-            margin-top: 10px;
-            font-size: 14px;
-            opacity: 0;
-            transition: opacity 0.3s ease;
-        }
-
-        .error-message.visible {
-            opacity: 1;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #005fbb; /* Blue color for Matthew Commons */
+            font-size: 48px;
+            font-family: 'Arial', sans-serif;
+            text-align: center;
+            z-index: 2;
         }
     </style>
 </head>
 <body>
     <canvas id="matrixCanvas"></canvas>
-    <img id="backgroundImage" class="background-image" src="" alt="">
-    <div class="interface">
-        <input type="text" class="text-input" placeholder="Type to generate an image...">
-        <div class="loading" id="loadingText">Generating image...</div>
-        <div class="error-message" id="errorMessage"></div>
-    </div>
+    <div class="centered-text">Matthew Commons</div>
 
     <script>
-        // Canvas setup and matrix animation code remains the same until the Node class
         const canvas = document.getElementById('matrixCanvas');
         const ctx = canvas.getContext('2d');
-        const input = document.querySelector('.text-input');
-        const loadingText = document.getElementById('loadingText');
-        const errorMessage = document.getElementById('errorMessage');
-        const backgroundImage = document.getElementById('backgroundImage');
 
         function resizeCanvas() {
             canvas.width = window.innerWidth;
@@ -119,6 +51,15 @@
         }
         resizeCanvas();
         window.addEventListener('resize', resizeCanvas);
+
+        // Cursor position tracking
+        let mouseX = canvas.width / 2;
+        let mouseY = canvas.height / 2;
+
+        window.addEventListener('mousemove', (e) => {
+            mouseX = e.clientX;
+            mouseY = e.clientY;
+        });
 
         class Node {
             constructor() {
@@ -128,15 +69,35 @@
             reset() {
                 this.x = Math.random() * canvas.width;
                 this.y = Math.random() * canvas.height;
-                this.vx = (Math.random() - 0.5) * 2;
-                this.vy = (Math.random() - 0.5) * 2;
-                this.connections = [];
+                this.baseVx = (Math.random() - 0.5) * 3; // Base speed
+                this.baseVy = (Math.random() - 0.5) * 3; // Base speed
+                this.vx = this.baseVx;
+                this.vy = this.baseVy;
                 this.radius = Math.random() * 2 + 1;
             }
 
             update() {
+                const dx = this.x - mouseX;
+                const dy = this.y - mouseY;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                const maxDistance = 250; // Larger repel zone around cursor
+
+                if (distance < maxDistance) {
+                    // Move the node away from the cursor with increased speed to avoid touching
+                    const angle = Math.atan2(dy, dx);
+                    const repelSpeed = 5; // Faster speed when repelling
+                    this.vx = Math.cos(angle) * repelSpeed;
+                    this.vy = Math.sin(angle) * repelSpeed;
+                } else {
+                    // Return to base speed when outside of the repel zone
+                    this.vx = this.baseVx;
+                    this.vy = this.baseVy;
+                }
+
                 this.x += this.vx;
                 this.y += this.vy;
+
+                // Bounce off edges
                 if (this.x < 0 || this.x > canvas.width) this.vx *= -1;
                 if (this.y < 0 || this.y > canvas.height) this.vy *= -1;
             }
@@ -144,15 +105,15 @@
             draw() {
                 ctx.beginPath();
                 ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
-                ctx.fillStyle = 'rgba(255, 255, 255, 0.8)'; // Changed to white
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
                 ctx.fill();
             }
         }
 
-        const nodes = Array.from({ length: 100 }, () => new Node());
+        const nodes = Array.from({ length: 150 }, () => new Node());
 
         function animate() {
-            ctx.fillStyle = 'rgba(0, 8, 20, 0.05)'; // Darker blue background
+            ctx.fillStyle = 'rgba(0, 8, 20, 0.05)';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
             nodes.forEach(node => {
@@ -167,12 +128,11 @@
                     const dy = other.y - node.y;
                     const distance = Math.sqrt(dx * dx + dy * dy);
 
-                    if (distance < 100) {
+                    if (distance < 150) {  // Increase connection vicinity slightly, fewer connections
                         ctx.beginPath();
                         ctx.moveTo(node.x, node.y);
                         ctx.lineTo(other.x, other.y);
-                        // Changed to white with blue tint
-                        ctx.strokeStyle = `rgba(200, 220, 255, ${1 - distance / 100})`;
+                        ctx.strokeStyle = `rgba(200, 220, 255, ${1 - distance / 150})`;
                         ctx.lineWidth = 1;
                         ctx.stroke();
                     }
@@ -182,99 +142,6 @@
             requestAnimationFrame(animate);
         }
 
-        // X (Twitter) API Configuration
-        const API_CONFIG = {
-            bearerToken: 'YOUR_BEARER_TOKEN',
-            apiUrl: 'https://api.twitter.com/2/tweets/search/recent',
-            imageGenBotUsername: 'YOUR_IMAGE_BOT_USERNAME'
-        };
-
-        // API Helper Functions
-        async function generateImage(prompt) {
-            try {
-                // 1. Send tweet to image generation bot
-                const tweetResponse = await fetch('https://api.twitter.com/2/tweets', {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': `Bearer ${API_CONFIG.bearerToken}`,
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        text: `@${API_CONFIG.imageGenBotUsername} ${prompt}`
-                    })
-                });
-
-                if (!tweetResponse.ok) throw new Error('Failed to send tweet');
-                const tweetData = await tweetResponse.json();
-
-                // 2. Poll for response from bot
-                return await pollForResponse(tweetData.data.id, prompt);
-            } catch (error) {
-                console.error('Image generation error:', error);
-                throw error;
-            }
-        }
-
-        async function pollForResponse(tweetId, prompt) {
-            const maxAttempts = 30; // 30 seconds timeout
-            let attempts = 0;
-
-            while (attempts < maxAttempts) {
-                try {
-                    const response = await fetch(
-                        `${API_CONFIG.apiUrl}?query=conversation_id:${tweetId} from:${API_CONFIG.imageGenBotUsername}`,
-                        {
-                            headers: {
-                                'Authorization': `Bearer ${API_CONFIG.bearerToken}`
-                            }
-                        }
-                    );
-
-                    if (!response.ok) throw new Error('Failed to fetch response');
-                    const data = await response.json();
-
-                    if (data.data && data.data[0]?.attachments?.media_keys) {
-                        // Get media URL from the response
-                        return data.data[0].attachments.media_keys[0];
-                    }
-
-                    await new Promise(resolve => setTimeout(resolve, 1000));
-                    attempts++;
-                } catch (error) {
-                    console.error('Polling error:', error);
-                    throw error;
-                }
-            }
-
-            throw new Error('Timeout waiting for image generation');
-        }
-
-        // Event Handlers
-        let generateTimeout;
-        input.addEventListener('input', async (e) => {
-            clearTimeout(generateTimeout);
-            errorMessage.classList.remove('visible');
-            
-            if (e.target.value.length > 2) {
-                generateTimeout = setTimeout(async () => {
-                    loadingText.classList.add('visible');
-                    try {
-                        const imageUrl = await generateImage(e.target.value);
-                        backgroundImage.src = imageUrl;
-                        backgroundImage.style.opacity = '0.8';
-                    } catch (error) {
-                        errorMessage.textContent = 'Failed to generate image. Please try again.';
-                        errorMessage.classList.add('visible');
-                    } finally {
-                        loadingText.classList.remove('visible');
-                    }
-                }, 1000);
-            } else {
-                backgroundImage.style.opacity = '0';
-            }
-        });
-
-        // Start animation
         animate();
     </script>
 </body>
