@@ -46,6 +46,9 @@ class Node {
         const distance = Math.sqrt(dx * dx + dy * dy);
         const maxDistance = 200;
         const slowZone = 80;
+        const centerX = canvas.width / 2;
+        const centerY = canvas.height / 2;
+        const centeringStrength = 0.005; // Strength of centering force
 
         // Repel from cursor logic (only when tracking is enabled)
         if (trackMouse && distance < maxDistance) {
@@ -65,19 +68,24 @@ class Node {
             this.vy = this.baseVy;
         }
 
+        // Apply centering force towards the middle of the canvas
+        this.vx += (centerX - this.x) * centeringStrength;
+        this.vy += (centerY - this.y) * centeringStrength;
+
         // Repelling from edges logic
         const edgeRepelZone = 50; // Repel from edges when within this distance
+        const cornerRepelFactor = 1.5; // Stronger repulsion near corners
 
         if (this.x < edgeRepelZone) {
-            this.vx += (edgeRepelZone - this.x) / 50; // Apply force away from the left edge
+            this.vx += (edgeRepelZone - this.x) / 50 * cornerRepelFactor;
         } else if (this.x > canvas.width - edgeRepelZone) {
-            this.vx -= (this.x - (canvas.width - edgeRepelZone)) / 50; // Apply force away from the right edge
+            this.vx -= (this.x - (canvas.width - edgeRepelZone)) / 50 * cornerRepelFactor;
         }
 
         if (this.y < edgeRepelZone) {
-            this.vy += (edgeRepelZone - this.y) / 50; // Apply force away from the top edge
+            this.vy += (edgeRepelZone - this.y) / 50 * cornerRepelFactor;
         } else if (this.y > canvas.height - edgeRepelZone) {
-            this.vy -= (this.y - (canvas.height - edgeRepelZone)) / 50; // Apply force away from the bottom edge
+            this.vy -= (this.y - (canvas.height - edgeRepelZone)) / 50 * cornerRepelFactor;
         }
 
         this.x += this.vx;
