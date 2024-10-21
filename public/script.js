@@ -44,11 +44,11 @@ class Node {
         const dx = this.x - mouseX;
         const dy = this.y - mouseY;
         const distance = Math.sqrt(dx * dx + dy * dy);
-        const maxDistance = 200;
-        const slowZone = 80;
+        const maxDistance = 150;  // Repel zone around cursor
+        const slowZone = 60;      // Reduced from 80 to 60
         const centerX = canvas.width / 2;
         const centerY = canvas.height / 2;
-        const centeringStrength = 0.005; // Strength of centering force
+        const centeringStrength = 0.001; // Weak centering force
 
         // Repel from cursor logic (only when tracking is enabled)
         if (trackMouse && distance < maxDistance) {
@@ -68,12 +68,22 @@ class Node {
             this.vy = this.baseVy;
         }
 
-        // Apply centering force towards the middle of the canvas
+        // Apply weak centering force towards the middle of the canvas
         this.vx += (centerX - this.x) * centeringStrength;
         this.vy += (centerY - this.y) * centeringStrength;
 
+        // Add some random jitter to prevent clustering
+        const jitterStrength = 0.1;
+        this.vx += (Math.random() - 0.5) * jitterStrength;
+        this.vy += (Math.random() - 0.5) * jitterStrength;
+
+        // Add random drift so the nodes never stop moving
+        const driftStrength = 0.05;
+        this.vx += (Math.random() - 0.5) * driftStrength;
+        this.vy += (Math.random() - 0.5) * driftStrength;
+
         // Repelling from edges logic
-        const edgeRepelZone = 50; // Repel from edges when within this distance
+        const edgeRepelZone = 30; // Repel proximity to edges
         const cornerRepelFactor = 1.5; // Stronger repulsion near corners
 
         if (this.x < edgeRepelZone) {
