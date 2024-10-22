@@ -6,25 +6,45 @@
 
 body {
     overflow: hidden;
-    background: #000814;
+    background: #000;
     font-family: 'Arial', sans-serif;
 }
 
-canvas {
+#canvas-container {
     position: fixed;
     top: 0;
     left: 0;
-    z-index: 1;
+    width: 100%;
+    height: 100vh;
 }
 
-.centered-text {
+.overlay {
     position: fixed;
-    top: 50%;
+    bottom: 2rem;
     left: 50%;
-    transform: translate(-50%, -50%);
-    color: #005fbb; /* Blue color for Matthew Commons */
-    font-size: 48px;
-    font-family: 'Arial', sans-serif;
+    transform: translateX(-50%);
+    color: #4fc3f7;
     text-align: center;
-    z-index: 2;
+    pointer-events: none;
+    z-index: 1000;
+    transition: opacity 0.3s ease;
+}
+
+.instructions {
+    background: rgba(0, 0, 0, 0.5);
+    padding: 1rem 2rem;
+    border-radius: 10px;
+    border: 1px solid #4fc3f7;
+}
+
+.instructions p {
+    margin: 0.5rem 0;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    opacity: 0.8;
+}
+
+.fade-out {
+    opacity: 0;
 }
